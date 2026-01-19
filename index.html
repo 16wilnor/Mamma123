@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skytespill med Poengsystem</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #111;
+        }
+        canvas {
+            display: block;
+            background-color: #222;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        // Få tilgang til canvas
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Sett dimensjoner for canvas
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Spilleren
+        let player = {
+            x: canvas.width / 2,
+            y: canvas.height - 70,
+            width: 60,
+            height: 60,
+            speed: 8,
+            color: 'green',
+            dx: 0,
+            image: new Image()
+        };
+        player.image.src = 'https://example.com/player-image.png';  // Bruk et bilde her (pass på at du har tilgang til bildet)
+
+        // Kuler
+        let bullets = [];
+
+        // Fiender
+        let enemies = [];
+        let enemySpeed = 3;
+
+        // Poengsystem
+        let score = 0;
+
+        // Kontroll
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowLeft') {
+                player.dx = -player.speed;
+            } else if (e.key === 'ArrowRight') {
+                player.dx = player.speed;
+            } else if (e.key === ' ') {
+                shootBullet();
+            }
+        });
+
+        document.addEventListener('keyup', function (e) {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                player.dx = 0;
+            }
+        });
+
+        // Tegn spilleren
+        function drawPlayer() {
+            ctx.drawImage(player.image, player.x, player.y, player.width, player.height);
+        }
+
+        // Tegn kuler
+        function drawBullets() {
+            bullets.forEach(function(bullet, index) {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                bullet.y -= bullet.speed;
+
+                if (bullet.y < 0) {
+                    bullets.splice(index, 1);  // Fjern kulen hvis den går utenfor skjermen
+                }
+            });
+        }
+
+        // Tegn fiendene
+        function drawEnemies() {
+            enemies.forEach(function(enemy, index) {
+                ctx.fillStyle = 'red';
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                enemy.y += enemySpeed;
+
+                if (enemy.y > canvas.height) {
+                    enemies.splice(index, 1);  // Fjern fiende når den går ut av skjermen
+                }
+            });
+        }
+
+        // Skyt kule
+        function shootBullet() {
+            const bullet = {
+                x: player.x + player.width / 2 - 5,
+                y: player.y,
+                width: 10,
+                height: 20,
+                speed: 5
+            };
+            bullets.push(bullet);
+        }
+
+        // Spawn fiender
+        function spawnEnemy() {
+            const enemy = {
+                x: Math.random() * (canvas.width - 50),
+                y: -50,
+                width: 50,
+                height: 50,
+                speed: enemySpeed
+            };
+            enemies.push(enemy);
+        }
+
+        // Kollisjonssjekk
+        function detectCollisions() {
+            bullets.forEach(function(bullet, bIndex) {
+                enemies.forEach(function(enemy, eIndex) {
+                    if (bullet.x < enemy.x + enemy.width &&
+                        bullet.x + bullet.width > enemy.x &&
+                        bullet.y < enemy.y + enemy.height &&
+                        bullet.y + bullet.height > enemy.y) {
+                        // Kollisjon oppdaget, fjern fiende og kule
+                        bullets.splice(bIndex, 1);
+                        enemies.splice(eIndex, 1);
+                        score += 10;  // Legg til poeng når fienden blir truffet
+                    }
+                });
+            });
+        }
+
+        // Tegn poeng
+        function drawScore() {
+            ctx.fillStyle = 'white';
+            ctx.font = '30px Arial';
+            ctx.fillText('Poeng: ' + score, 20, 40);
+        }
+
+        // Game over check
+        function checkGameOver() {
+            enemies.forEach(function(enemy) {
+                if (enemy.y + enemy.height > player.y) {
+                    gameOver = true;
+                    ctx.fillStyle = 'white';
+                    ctx.font = '48px Arial';
+                    ctx.fillText('Game Over!', canvas.width / 2 - 150, canvas.height / 2);
+                }
+            });
+        }
+
+        // Oppdater spilltilstanden
+        function update() {
+            // Oppdater spilleren
+            player.x += player.dx;
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+            // Tegn alt
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPlayer();
+            drawBullets();
+            drawEnemies();
+            drawScore();
+            detectCollisions();
+            checkGameOver();
+
+            // Spawn fiender med sjanse
+            if (Math.random() < 0.02) {
+                spawnEnemy();
+            }
+
+            // Kontroller at spillet ikke er over
+            if (!gameOver) {
+                requestAnimationFrame(update);  // Oppdater hvert frame
+            }
+        }
+
+        // Spillstatus
+        let gameOver = false;
+
+        // Start spillet
+        update();
+
+    </script>
+</body>
+</html>
