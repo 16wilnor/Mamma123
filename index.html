@@ -29,16 +29,17 @@
 
         // Spilleren
         let player = {
-            x: canvas.width / 2,
+            x: canvas.width / 2 - 30,
             y: canvas.height - 70,
             width: 60,
             height: 60,
             speed: 8,
-            color: 'green',
+            color: 'green', // For testing bruker vi en farge
             dx: 0,
-            image: new Image()
+            // Vi kan bruke en enkel farge for å representere spilleren for nå
+            // image: new Image(),
+            // image.src = 'https://example.com/player-image.png';  // Bruk et bilde her (pass på at du har tilgang til bildet)
         };
-        player.image.src = 'https://example.com/player-image.png';  // Bruk et bilde her (pass på at du har tilgang til bildet)
 
         // Kuler
         let bullets = [];
@@ -69,7 +70,8 @@
 
         // Tegn spilleren
         function drawPlayer() {
-            ctx.drawImage(player.image, player.x, player.y, player.width, player.height);
+            ctx.fillStyle = player.color; // Bruk fargen for spilleren
+            ctx.fillRect(player.x, player.y, player.width, player.height);
         }
 
         // Tegn kuler
@@ -166,7 +168,7 @@
             if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
 
             // Tegn alt
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);  // Tøm canvas før vi tegner på nytt
             drawPlayer();
             drawBullets();
             drawEnemies();
@@ -190,7 +192,6 @@
 
         // Start spillet
         update();
-
     </script>
 </body>
 </html>
